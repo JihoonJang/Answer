@@ -194,21 +194,22 @@ class App extends React.Component {
       }
     }
     nonkiller = nonkiller.filter(e => !killer.includes(e) && answer[e] === 0);
-    nonkiller.sort(() => Math.random() - Math.random());
-    
-    var problem = [];
-    for (let i of killer) {
-      problem.push(i);
-    }
-    for (let i of nonkiller) {
-      problem.push(i);
-    }
-    for (let i = 0; i < 100; i++) {
+
+
+    for (let i = 0; i < 5000; i++) {
+      nonkiller.sort(() => Math.random() - Math.random());
+      var problem = [];
+      for (let i of killer) {
+        problem.push(i);
+      }
+      for (let i of nonkiller) {
+        problem.push(i);
+      }
       if (this.recursive_getAnswer(problem, value, answer, ansNum)) {
         return;
       }
     }
-    alert('답갯수 범위를 만족하는 결과를 찾을 수 없습니다. 답을 수정한 후 다시 시도해주세요.');
+    alert('답개수 범위를 만족하는 결과를 찾을 수 없습니다. 답을 수정한 후 다시 시도해주세요.');
   }
 
   recursive_getAnswer(problem, possibleAnswer, answer, ansNum) {
