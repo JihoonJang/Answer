@@ -158,7 +158,7 @@ class Output extends React.Component {
             Close
           </Button>
           <Button variant="primary" onClick={this.rerun}>
-            Re-Run
+            Rerun
           </Button>
         </Modal.Footer>
       </Modal>
