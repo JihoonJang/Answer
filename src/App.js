@@ -136,7 +136,7 @@ class Output extends React.Component {
     return (
       <Modal show={this.state.show} onHide={this.handleClose}>
         <Modal.Body><h5>답</h5>{this.answer[0]}<br/>{this.answer[1]}<br/>{this.answer[2]}<br/>{this.answer[3]}<br/></Modal.Body>
-        <Modal.Body><h5>답갯수</h5>{this.ansNum}<br/></Modal.Body>
+        <Modal.Body><h5>답개수</h5>{this.ansNum}<br/></Modal.Body>
         <Modal.Body><h5>답 복붙용</h5>{this.ansbocbut}</Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={this.handleClose}>
@@ -158,6 +158,7 @@ class App extends React.Component {
     var erroridx = []
     var nonkiller = []
 
+    // 입력 오류 있는지 확인
     for (let i = 1; i <= 20; i++) {
       if (ansDict[value[i]] === undefined) {
         erroridx.push(i);
@@ -189,7 +190,7 @@ class App extends React.Component {
     var ansSeq = [1, 2, 3, 4, 5];
     for (let i = 1; i <= 5; i++) {
       if (ansNumMin[i] <= 2) {
-        alert(ansSeq.filter(e => ansNumMin[e] <= 2) + '번 답갯수가 2개 이하입니다. 답을 수정하고 다시 시도해주세요.');
+        alert(ansSeq.filter(e => ansNumMin[e] <= 2) + '번 답개수가 2개 이하입니다. 답을 수정하고 다시 시도해주세요.');
         return;
       }
     }
@@ -214,6 +215,8 @@ class App extends React.Component {
 
   recursive_getAnswer(problem, possibleAnswer, answer, ansNum) {
     if (problem.length === 0) {
+      if (!ansNum.includes(3)) 
+        return false;
       this.setState({answer: answer});
       return true;
     }
