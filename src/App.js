@@ -1,6 +1,6 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Button, Form, Col, Row, Modal } from 'react-bootstrap';
+import { Alert, Button, Form, Col, Row, Modal } from 'react-bootstrap';
 import './App.css';
 
 class Input extends React.Component {
@@ -39,26 +39,40 @@ class Input extends React.Component {
     for (let i = 1; i <= 20; i++) {
       items.push(
         <Form.Group as={Row}>
-          <Col sm='1'>
-            <Form.Label as={Col}>{i}&nbsp;</Form.Label>
+          <Col sm='2'>
+            <center><Form.Label as={Col}>{i}&nbsp;</Form.Label></center>
           </Col>
-          <Col sm='8'>
+          <Col sm='7'>
             <Form.Control
               required
               type='text'
               onChange={(e) => this.onValueChanged(e, i)}
-              placeholder='답 또는 선지를 입력하세요. (예시 : 1, ㄱㄴ)' />
+              placeholder='예시 : 1, ㄱㄴ, x' />
           </Col>
-          <Form.Check 
-            checked={this.state.killer.includes(i)} 
-            onChange={(e) => this.onKillerChanged(e, i)} 
-            type='checkbox' 
-            label='찍맞방지' />
+          <Col sm='3'>
+            <center>
+              <Form.Check 
+                checked={this.state.killer.includes(i)} 
+                onChange={(e) => this.onKillerChanged(e, i)} 
+                type='checkbox'/>
+            </center>
+          </Col>
         </Form.Group>
       )
     }
     return (
       <Form onSubmit={this.onSubmitted}>
+        <Form.Group as={Row}>
+            <Col sm='2'>
+              <center><Alert variant='secondary'>번호</Alert></center>
+            </Col>
+            <Col sm='7'>
+              <center><Alert variant='secondary'>정답 또는 맞는 보기 입력</Alert></center>
+            </Col>
+            <Col sm='3'>
+              <center><Alert variant='secondary'>찍맞 방지</Alert></center>
+            </Col>
+        </Form.Group>
         {items}
         <center>
           <Button type='submit'>Submit</Button>
@@ -89,6 +103,7 @@ class Output extends React.Component {
     super(props);
     this.answer = ['', '', '', '']
     this.ansNum = [0, 0, 0, 0, 0, 0];
+    this.ansbocbut = [null];
     this.state = {show: false, prevAns: this.props.answer};
     this.handleShow = this.handleShow.bind(this);
     this.handleClose = this.handleClose.bind(this);
@@ -97,10 +112,12 @@ class Output extends React.Component {
   handleShow() {
     const circleNum = [0, '①', '②', '③', '④', '⑤'];
     this.ansNum = [0, 0, 0, 0, 0];
+    this.ansbocbut = [];
     for (let i = 0; i < 4; i++) {
       for (let j = 1; j <= 5; j++) {
         this.answer[i] += circleNum[this.props.answer[i * 5 + j]];
         this.ansNum[this.props.answer[i * 5 + j] - 1]++;
+        this.ansbocbut.push(<>{this.props.answer[i * 5 + j]}<br/></>)
       }
     }
     this.setState({show: true});
@@ -120,12 +137,10 @@ class Output extends React.Component {
       <Modal show={this.state.show} onHide={this.handleClose}>
         <Modal.Body><h5>답</h5>{this.answer[0]}<br/>{this.answer[1]}<br/>{this.answer[2]}<br/>{this.answer[3]}<br/></Modal.Body>
         <Modal.Body><h5>답갯수</h5>{this.ansNum}<br/></Modal.Body>
+        <Modal.Body><h5>답 복붙용</h5>{this.ansbocbut}</Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={this.handleClose}>
             Close
-          </Button>
-          <Button variant="primary" onClick={this.handleClose}>
-            Save Changes
           </Button>
         </Modal.Footer>
       </Modal>
@@ -188,10 +203,12 @@ class App extends React.Component {
     for (let i of nonkiller) {
       problem.push(i);
     }
-    if (!this.recursive_getAnswer(problem, value, answer, ansNum)) {
-      alert('답갯수 범위를 만족하는 결과를 찾을 수 없습니다. 답을 수정한 후 다시 시도해주세요.');
-      return;
+    for (let i = 0; i < 100; i++) {
+      if (this.recursive_getAnswer(problem, value, answer, ansNum)) {
+        return;
+      }
     }
+    alert('답갯수 범위를 만족하는 결과를 찾을 수 없습니다. 답을 수정한 후 다시 시도해주세요.');
   }
 
   recursive_getAnswer(problem, possibleAnswer, answer, ansNum) {
