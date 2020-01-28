@@ -101,17 +101,17 @@ const ansDict = {
 class Output extends React.Component {
   constructor(props) {
     super(props);
-    this.answer = ['', '', '', '']
+    this.answer = ['', '', '', ''];
     this.ansNum = [0, 0, 0, 0, 0, 0];
     this.ansbocbut = [null];
     this.state = {show: false, prevAns: this.props.answer};
     this.handleShow = this.handleShow.bind(this);
     this.handleClose = this.handleClose.bind(this);
-    this.rerun = this.rerun.bind(this);
   }
 
   handleShow() {
     const circleNum = [0, '①', '②', '③', '④', '⑤'];
+    this.answer = ['', '','', ''];
     this.ansNum = [0, 0, 0, 0, 0];
     this.ansbocbut = [];
     for (let i = 0; i < 4; i++) {
@@ -125,14 +125,9 @@ class Output extends React.Component {
   }
 
   handleClose() {
-    this.answer = ['', '', '', ''];
     this.setState({show: false});
   }
 
-  rerun() {
-    this.handleClose();
-    this.props.rerun();
-  }
   
   render() {
     if (this.state.prevAns !== this.props.answer) {
@@ -157,7 +152,7 @@ class Output extends React.Component {
           <Button variant="secondary" onClick={this.handleClose}>
             Close
           </Button>
-          <Button variant="primary" onClick={this.rerun}>
+          <Button variant="primary" onClick={this.props.rerun}>
             Rerun
           </Button>
         </Modal.Footer>
@@ -192,9 +187,9 @@ class App extends React.Component {
 
     value = value.map(e => ansDict[e]);
 
-    var answer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-                  0];
+    var answer = [0, 
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     var ansNum = [0, 0, 0, 0, 0, 0];
 
     var ansNumMin = [0, 0, 0, 0, 0, 0];
@@ -216,7 +211,7 @@ class App extends React.Component {
     }
     nonkiller = nonkiller.filter(e => !killer.includes(e) && answer[e] === 0);
 
-
+    // 될 때까지 돌려보기 (최대 5000번)
     for (let i = 0; i < 5000; i++) {
       nonkiller.sort(() => Math.random() - Math.random());
       var problem = [];
