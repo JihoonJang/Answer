@@ -1,6 +1,6 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Alert, Button, Form, Col, Row, Modal } from 'react-bootstrap';
+import { Alert, Button, Form, Col, Row, Modal, Container } from 'react-bootstrap';
 import './App.css';
 
 class Input extends React.Component {
@@ -107,6 +107,7 @@ class Output extends React.Component {
     this.state = {show: false, prevAns: this.props.answer};
     this.handleShow = this.handleShow.bind(this);
     this.handleClose = this.handleClose.bind(this);
+    this.rerun = this.rerun.bind(this);
   }
 
   handleShow() {
@@ -127,6 +128,11 @@ class Output extends React.Component {
     this.answer = ['', '', '', ''];
     this.setState({show: false});
   }
+
+  rerun() {
+    this.handleClose();
+    this.props.rerun();
+  }
   
   render() {
     if (this.state.prevAns !== this.props.answer) {
@@ -135,12 +141,24 @@ class Output extends React.Component {
     }
     return (
       <Modal show={this.state.show} onHide={this.handleClose}>
-        <Modal.Body><h5>답</h5>{this.answer[0]}<br/>{this.answer[1]}<br/>{this.answer[2]}<br/>{this.answer[3]}<br/></Modal.Body>
-        <Modal.Body><h5>답개수</h5>{this.ansNum}<br/></Modal.Body>
-        <Modal.Body><h5>답 복붙용</h5>{this.ansbocbut}</Modal.Body>
+        <Modal.Body>
+          <center>
+            <Container>
+              <Row>
+                <Col><h5>답</h5><p>{this.answer[0]}<br/>{this.answer[1]}<br/>{this.answer[2]}<br/>{this.answer[3]}<br/></p></Col>
+                <Col><h5>답개수</h5><p>{this.ansNum}<br/></p></Col>
+                <Col><h5>답 복붙용</h5><p>{this.ansbocbut}</p></Col>
+              </Row>
+            </Container>
+          </center>
+        </Modal.Body>
+      
         <Modal.Footer>
           <Button variant="secondary" onClick={this.handleClose}>
             Close
+          </Button>
+          <Button variant="primary" onClick={this.rerun}>
+            Re-Run
           </Button>
         </Modal.Footer>
       </Modal>
@@ -157,6 +175,8 @@ class App extends React.Component {
   submitted(value, killer) {
     var erroridx = []
     var nonkiller = []
+    this.value = value;
+    this.killer = killer;
 
     // 입력 오류 있는지 확인
     for (let i = 1; i <= 20; i++) {
@@ -248,7 +268,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <Input submit={this.submitted}/>
-        <Output answer={this.state.answer}/>
+        <Output answer={this.state.answer} rerun={() => this.submitted(this.value, this.killer)}/>
       </div>
     );
   }
