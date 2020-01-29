@@ -70,7 +70,7 @@ class Input extends React.Component {
               <center><Alert variant='secondary'>정답 또는 맞는 보기 입력</Alert></center>
             </Col>
             <Col sm='3'>
-              <center><Alert variant='secondary'>찍맞 방지</Alert></center>
+              <center><Alert variant='secondary'>찍맞방지</Alert></center>
             </Col>
         </Form.Group>
         {items}
@@ -80,22 +80,6 @@ class Input extends React.Component {
       </Form>
     );
   }
-}
-
-const ansDict = {
-  '1': [1],
-  '2': [2],
-  '3': [3],
-  '4': [4],
-  '5': [5],
-  'ㄱ': [1],
-  'ㄴ': [1, 2],
-  'ㄷ': [2, 3],
-  'ㄱㄴ': [3, 4],
-  'ㄱㄷ': [3, 4, 5],
-  'ㄴㄷ': [4, 5],
-  'ㄱㄴㄷ': [5],
-  'x': [1, 2, 3, 4, 5]
 }
 
 class Output extends React.Component {
@@ -144,6 +128,7 @@ class Output extends React.Component {
                 <Col><h5>답개수</h5><p>{this.ansNum}<br/></p></Col>
                 <Col><h5>답 복붙용</h5><p>{this.ansbocbut}</p></Col>
               </Row>
+              {this.props.toX.length > 0 ? <Row><Alert variant='danger'>{String(this.props.toX)}번의 답을 위와 같이 수정해야 합니다.</Alert></Row> : null}
             </Container>
           </center>
         </Modal.Body>
@@ -161,15 +146,33 @@ class Output extends React.Component {
   }
 }
 
+const ansDict = {
+  '1': [1],
+  '2': [2],
+  '3': [3],
+  '4': [4],
+  '5': [5],
+  'ㄱ': [1],
+  'ㄴ': [1, 2],
+  'ㄷ': [2, 3],
+  'ㄱㄴ': [3, 4],
+  'ㄱㄷ': [3, 4, 5],
+  'ㄴㄷ': [4, 5],
+  'ㄱㄴㄷ': [5],
+  'x': [1, 2, 3, 4, 5]
+}
+
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {answer: ''};
     this.submitted = this.submitted.bind(this);
+    this.toX = []
   }
   submitted(value, killer) {
     var erroridx = []
     var nonkiller = []
+    var problemNum = []
     this.value = value;
     this.killer = killer;
 
@@ -178,10 +181,13 @@ class App extends React.Component {
       if (ansDict[value[i]] === undefined) {
         erroridx.push(i);
       }
-      nonkiller.push(i);
+      if (!killer.includes(i)) {
+        nonkiller.push(i);
+        problemNum.push(i);
+      }
     }
     if (erroridx.length > 0) {
-      alert(String(erroridx) + '번째 답을 다시 입력해주세요');
+      alert(String(erroridx) + '번째 답을 양식에 맞게 입력해주세요 (예시 : 1, ㄱㄴ, x)');
       return;
     }
 
@@ -202,38 +208,68 @@ class App extends React.Component {
         ansNum[value[i][0]]++;
       }
     }
-    var ansSeq = [1, 2, 3, 4, 5];
-    for (let i = 1; i <= 5; i++) {
-      if (ansNumMin[i] <= 2) {
-        alert(ansSeq.filter(e => ansNumMin[e] <= 2) + '번 답개수가 2개 이하입니다. 답을 수정하고 다시 시도해주세요.');
-        return;
-      }
-    }
-    nonkiller = nonkiller.filter(e => !killer.includes(e) && answer[e] === 0);
 
-    // 될 때까지 돌려보기 (최대 5000번)
-    for (let i = 0; i < 5000; i++) {
-      nonkiller.sort(() => Math.random() - Math.random());
-      var problem = [];
-      for (let i of killer) {
-        problem.push(i);
+
+    nonkiller = nonkiller.filter(e => answer[e] === 0);
+
+    this.toX = [];
+
+    while (problemNum.length > 0) {
+      if (ansNumMin.filter(e => e <= 2).length === 1 && ansNum.filter(e => e >= 6).length === 0) {
+        for (let i = 0; i < 1000; i++) {
+          nonkiller.sort(() => Math.random() - Math.random());
+          var problem = [];
+          for (let i of killer) {
+            problem.push(i);
+          }
+          for (let i of nonkiller) {
+            problem.push(i);
+          }
+          if (this.recursive_getAnswer(problem, value, answer, ansNum)) {
+            this.toX.sort((a, b) => a - b);
+            this.setState({answer: answer});
+            return;
+          }
+        }
       }
-      for (let i of nonkiller) {
-        problem.push(i);
+
+      problemNum.sort((a, b) => {
+        var ra = 0, rb = 0;
+        for (let i of value[a]) {
+          ra += ansNumMin[i];
+        }
+        for (let i of value[b]) {
+          rb += ansNumMin[i];
+        }
+        ra /= value[a].length;
+        rb /= value[b].length;
+        if (ra === rb) return Math.random() - 0.5;
+        else return ra - rb;
+      });
+
+      var i = problemNum.pop();
+
+      if (!killer.includes(i) && value[i].length === 1) {
+        answer[i] = 0;
+        ansNum[value[i][0]]--;
+        nonkiller.push(i);
       }
-      if (this.recursive_getAnswer(problem, value, answer, ansNum)) {
-        return;
+      for (let j of value[i]) {
+        ansNumMin[j]--;
+      }
+      this.toX.push(i);
+      value[i] = [1, 2, 3, 4, 5];
+      for (let j of value[i]) {
+        ansNumMin[j]++;
       }
     }
-    alert('답개수 범위를 만족하는 결과를 찾을 수 없습니다. 답을 수정한 후 다시 시도해주세요.');
   }
 
   recursive_getAnswer(problem, possibleAnswer, answer, ansNum) {
     if (problem.length === 0) {
-      if (!ansNum.includes(3)) 
+      if (!ansNum.includes(3) || ansNum.includes(2)) 
         return false;
-      this.setState({answer: answer});
-      return true;
+      else return true;
     }
     var curProb = problem.pop();
     var randomIdx = [];
@@ -244,7 +280,7 @@ class App extends React.Component {
     for (let i of randomIdx) {
       var curAns = possibleAnswer[curProb][i];
       if ((problem.length > 2 && ansNum[curAns] < 4) 
-        || (problem.length < 2 && ansNum[curAns] < 5)
+        || (problem.length < 2 && ansNum[curAns] < 5 && ansNum[curAns] >= 3)
         || (problem.length === 2 && !ansNum.includes(1) && !(ansNum.includes(2) && ansNum[curAns] !== 2) && ansNum[curAns] < 4)) {
         answer[curProb] = curAns;
         ansNum[curAns]++;
@@ -263,7 +299,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <Input submit={this.submitted}/>
-        <Output answer={this.state.answer} rerun={() => this.submitted(this.value, this.killer)}/>
+        <Output answer={this.state.answer} rerun={() => this.submitted(this.value, this.killer)} toX={this.toX}/>
       </div>
     );
   }
