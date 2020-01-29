@@ -95,15 +95,18 @@ class Output extends React.Component {
 
   handleShow() {
     const circleNum = [0, '①', '②', '③', '④', '⑤'];
-    this.answer = ['', '','', ''];
+    this.answer = [];
     this.ansNum = [0, 0, 0, 0, 0];
     this.ansbocbut = [];
     for (let i = 0; i < 4; i++) {
       for (let j = 1; j <= 5; j++) {
-        this.answer[i] += circleNum[this.props.answer[i * 5 + j]];
+        var prob = i * 5 + j;
+        var ans = this.props.answer[i * 5 + j];
+        this.answer.push(<font style={{color: this.props.toX.includes(prob) ? 'red' : 'black'}}>{circleNum[ans]}</font>);
         this.ansNum[this.props.answer[i * 5 + j] - 1]++;
         this.ansbocbut.push(<>{this.props.answer[i * 5 + j]}<br/></>)
       }
+      this.answer.push(<br/>)
     }
     this.setState({show: true});
   }
@@ -124,7 +127,7 @@ class Output extends React.Component {
           <center>
             <Container>
               <Row>
-                <Col><h5>답</h5><p>{this.answer[0]}<br/>{this.answer[1]}<br/>{this.answer[2]}<br/>{this.answer[3]}<br/></p></Col>
+                <Col><h5>답</h5><p>{this.answer}</p></Col>
                 <Col><h5>답개수</h5><p>{this.ansNum}<br/></p></Col>
                 <Col><h5>답 복붙용</h5><p>{this.ansbocbut}</p></Col>
               </Row>
