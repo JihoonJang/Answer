@@ -3,9 +3,19 @@
   margin: 5vmin;
 }
 
+
+.Modal {
+  text-align: center;
+  margin: 0vmin;
+  font-size: 2vmin;
+}
 .App-logo {
   height: 40vmin;
   pointer-events: none;
+}
+.modal-90w {
+  width: 90%;
+  max-width: none!important;
 }
 
 @media (prefers-reduced-motion: no-preference) {

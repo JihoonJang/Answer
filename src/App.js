@@ -1,23 +1,7 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Alert, Button, Form, Col, Row, Modal, Container } from 'react-bootstrap';
+import { Alert, Button, Form, Col, Row, Modal, Container, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import './App.css';
-
-const ansDict = {
-  '1': [1],
-  '2': [2],
-  '3': [3],
-  '4': [4],
-  '5': [5],
-  'ㄱ': [1],
-  'ㄴ': [1, 2],
-  'ㄷ': [2, 3],
-  'ㄱㄴ': [3, 4],
-  'ㄱㄷ': [3, 4, 5],
-  'ㄴㄷ': [4, 5],
-  'ㄱㄴㄷ': [5],
-  'x': [1, 2, 3, 4, 5]
-};
 
 class Input extends React.Component {
   constructor(props) {
@@ -46,7 +30,7 @@ class Input extends React.Component {
         ansNum.push(a);
       }
       if (ansNum.length !== 6) {
-        alert('답개수를 ①번부터 ⑤번까지 모두 입력해주세요.');
+        alert('답개수를 ①번부터 ⑤번까지 5개만 입력해주세요.');
         e.preventDefault();
         return;
       }
@@ -78,9 +62,6 @@ class Input extends React.Component {
       e.preventDefault();
       return;
     }
-
-    // input을 가능한 답의 집합으로 mapping시킴
-    value = value.map(e => ansDict[e]);
 
     this.props.submit(value, killer, ansNum);
 
@@ -167,6 +148,8 @@ class Input extends React.Component {
   }
 }
 
+const circleNum = [0, '①', '②', '③', '④', '⑤'];
+
 class Output extends React.Component {
   constructor(props) {
     super(props);
@@ -178,11 +161,19 @@ class Output extends React.Component {
     this.handleClose = this.handleClose.bind(this);
   }
 
+  onCopy(i) {
+    if (i === null)
+      navigator.clipboard.writeText(this.props.answer.reduce((p, c) => {if (p === null) return ''; else return p + String(c) + '\n';}));
+    else
+      navigator.clipboard.writeText(this.props.answerExample[i]);
+  }
+
   handleShow() {
-    const circleNum = [0, '①', '②', '③', '④', '⑤'];
     this.answer = [];
     this.ansNum = [0, 0, 0, 0, 0];
     this.ansbocbut = [];
+    this.answerExample = [];
+    this.problem = []
     for (let i = 0; i < 4; i++) {
       for (let j = 1; j <= 5; j++) {
         var prob = i * 5 + j;
@@ -190,6 +181,23 @@ class Output extends React.Component {
         this.answer.push(<font style={{color: this.props.toX.includes(prob) ? 'red' : 'black'}}>{circleNum[ans]}</font>);
         this.ansNum[this.props.answer[i * 5 + j] - 1]++;
         this.ansbocbut.push(<>{this.props.answer[i * 5 + j]}<br/></>)
+        this.answerExample.push(
+        <Row>
+          <Col sm='2'>
+            <OverlayTrigger
+              placement='left'
+              delay={{ show: 250, hide: 400}}
+              overlay={props => <Tooltip {...props}>복사하기</Tooltip>}>
+              <Button size='sm' 
+              disabled={this.props.answerExample[i * 5 + j].length === 1}
+              onClick={(e) => this.onCopy(i * 5 + j)}>{i * 5 + j}</Button>
+            </OverlayTrigger>
+          </Col>
+          <Col sm='10'>
+            <p align='left'>{this.props.answerExample[i * 5 + j]}</p>
+          </Col>
+        </Row>);
+        this.problem.push(<>{i * 5 + j}<br/></>);
       }
       this.answer.push(<br/>)
     }
@@ -207,18 +215,32 @@ class Output extends React.Component {
       this.handleShow();
     }
     return (
-      <Modal show={this.state.show} onHide={this.handleClose}>
+      <Modal show={this.state.show} onHide={this.handleClose} dialogClassName='modal-90w'>
         <Modal.Body>
-          <center>
-            <Container>
-              <Row>
-                <Col><h5>답</h5><p>{this.answer}</p></Col>
-                <Col><h5>답개수</h5><p>{String(this.ansNum)}<br/></p></Col>
-                <Col><h5>답 복붙용</h5><p>{this.ansbocbut}</p></Col>
-              </Row>
-              {this.props.toX.length > 0 ? <Row><Alert variant='danger'>{String(this.props.toX)}번의 답을 위와 같이 수정해야 합니다.</Alert></Row> : null}
-            </Container>
-          </center>
+          <Container>
+          <div className='Modal'>
+            <Row>
+              <Col sm='3'>
+                <h5>답</h5><p>{this.answer}</p><br/>
+                <h5>답개수</h5><p>{String(this.ansNum)}<br/></p>
+                <h5>복붙용</h5><p>{this.ansbocbut}</p>
+                <Button 
+                  size='sm' 
+                  onClick={(e) => this.onCopy(null)}>복사하기</Button>
+              </Col>
+              <Col sm='9'>
+                <h5>답 예시</h5>
+                {this.answerExample}
+              </Col>
+              
+              {this.props.toX.length > 0 ? 
+              <Col>
+                <br/>
+                <Alert variant='danger'>{String(this.props.toX)}번의 답을 위와 같이 수정해야 합니다.</Alert>
+              </Col> : null}
+            </Row>
+          </div>
+          </Container>
         </Modal.Body>
       
         <Modal.Footer>
@@ -234,6 +256,48 @@ class Output extends React.Component {
   }
 }
 
+const ansDict = {
+  '1': [1],
+  '2': [2],
+  '3': [3],
+  '4': [4],
+  '5': [5],
+  'ㄱ': [1],
+  'ㄴ': [1, 2],
+  'ㄷ': [2, 3],
+  'ㄱㄴ': [3, 4],
+  'ㄱㄷ': [3, 4, 5],
+  'ㄴㄷ': [4, 5],
+  'ㄱㄴㄷ': [5],
+  'x': [1, 2, 3, 4, 5]
+};
+
+const answerSheet =  
+  [ 
+    '① ㄱ\t② ㄴ\t③ ㄷ\t④ ㄱ, ㄴ\t⑤ ㄱ, ㄷ',
+    '① ㄱ\t② ㄴ\t③ ㄷ\t④ ㄱ, ㄴ\t⑤ ㄴ, ㄷ',
+    '① ㄱ\t② ㄴ\t③ ㄷ\t④ ㄱ, ㄷ\t⑤ ㄴ, ㄷ',
+    '① ㄱ\t② ㄴ\t③ ㄱ, ㄴ\t④ ㄱ, ㄷ\t⑤ ㄴ, ㄷ',
+    '① ㄱ\t② ㄷ\t③ ㄱ, ㄴ\t④ ㄱ, ㄷ\t⑤ ㄴ, ㄷ',
+    '① ㄴ\t② ㄷ\t③ ㄱ, ㄴ\t④ ㄱ, ㄷ\t⑤ ㄴ, ㄷ',
+    '① ㄱ\t② ㄴ\t③ ㄱ, ㄷ\t④ ㄴ, ㄷ\t⑤ ㄱ, ㄴ, ㄷ',
+    '① ㄱ\t② ㄷ\t③ ㄱ, ㄴ\t④ ㄴ, ㄷ\t⑤ ㄱ, ㄴ, ㄷ',
+    '① ㄴ\t② ㄷ\t③ ㄱ, ㄴ\t④ ㄱ, ㄷ\t⑤ ㄱ, ㄴ, ㄷ'
+  ];
+
+function getRandomAnswerExample(bogi, answer) {
+  let s = bogi[0];
+  if (s === 'x') return answerSheet[Math.floor(Math.random() * 9)];
+  else if (!isNaN(parseInt(s))) return circleNum[answer];
+  for (let i = 1; i < bogi.length; i++) {
+    s += ', ' + bogi[i];
+  }
+  s = circleNum[answer] + ' ' + s + '\t';
+  let possibleExample = answerSheet.filter(v => v.includes(s));
+  if (possibleExample.length === 0) return '';
+  return possibleExample[Math.floor(Math.random() * possibleExample.length)];
+};
+
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -247,6 +311,9 @@ class App extends React.Component {
     this.killer = [...killer];
     this.thresholdInput = thresholdInput;
 
+    // input을 가능한 답의 집합으로 mapping시킴
+    let answerSet = value.map(e => ansDict[e]);
+    
     // 답개수    
     var ansNum = [null, 0, 0, 0, 0, 0];
     var ans = [null];
@@ -295,7 +362,7 @@ class App extends React.Component {
         if (toX.includes(p)) for (let a of [1, 2, 3, 4, 5]) {
           problemSetOfAnswer[a].add(p);
         }
-        else for (let a of value[p]) {
+        else for (let a of answerSet[p]) {
           problemSetOfAnswer[a].add(p);
         }
       }
@@ -333,11 +400,18 @@ class App extends React.Component {
     var recursive_fillAnswer = (ansNumThreshold = null) => {
       if (!isValid(ansNumThreshold)) return false;
       
-      if (remainProblem.length === 0) return true;
+      if (remainProblem.length === 0) {
+        this.answerExample = {};
+        for (let p = 1; p <= 20; p++) {
+          this.answerExample[p] = getRandomAnswerExample(value[p], ans[p]);
+        }
+        this.setState({answer: ans});
+        return true;
+      }
 
       const p = remainProblem.pop();
-      value[p].sort(() => Math.random() - Math.random());
-      for (let a of value[p]) {
+      answerSet[p].sort(() => Math.random() - Math.random());
+      for (let a of answerSet[p]) {
         ansNum[a]++;
         ans[p] = a;
         if (recursive_fillAnswer(ansNumThreshold)) return true;
@@ -354,11 +428,11 @@ class App extends React.Component {
     switch(killer.length) {
       case 0: killerAnsArr.push([]); break;
       case 1: 
-        for (let a of value[killer[0]]) killerAnsArr.push([a]);
+        for (let a of answerSet[killer[0]]) killerAnsArr.push([a]);
         break;
       case 2:
-        for (let a0 of value[killer[0]]) {
-          for (let a1 of value[killer[1]]) {
+        for (let a0 of answerSet[killer[0]]) {
+          for (let a1 of answerSet[killer[1]]) {
             killerAnsArr.push([a0, a1]);
           }
         }
@@ -378,16 +452,15 @@ class App extends React.Component {
         for (let a of killerAns) threshold[a]++;
 
       if (recursive_fillAnswer(threshold)) {
-        this.setState({answer: ans});
         return;
       }
       else {
         var toX = [];
-        var toXCandidate = remainProblem.filter(p => value[p].length < 5);
+        var toXCandidate = remainProblem.filter(p => answerSet[p].length < 5);
         do {
           toXCandidate.sort((a, b) => {
-            a = totalAnsNumDict.get(value[a]) - thresholdDict.get(value[a]);
-            b = totalAnsNumDict.get(value[b]) - thresholdDict.get(value[b]);
+            a = totalAnsNumDict.get(answerSet[a]) - thresholdDict.get(answerSet[a]);
+            b = totalAnsNumDict.get(answerSet[b]) - thresholdDict.get(answerSet[b]);
             if (a === b) return Math.random() - Math.random();
             else return a - b;
           });
@@ -410,7 +483,10 @@ class App extends React.Component {
 
     this.toX = toXDict.get(minKey);
     this.toX.sort((a, b) => a - b);
-    for (let p of this.toX) value[p] = [1, 2, 3, 4, 5];
+    for (let p of this.toX) {
+      answerSet[p] = [1, 2, 3, 4, 5];
+      value[p] = 'x';
+    }
 
     let threshold = thresholdInput === null ? [null, 3, 3, 3, 3, 3] : thresholdInput;
     if (thresholdInput === null)
@@ -422,18 +498,20 @@ class App extends React.Component {
     }
     
     if (recursive_fillAnswer(threshold)) {
-      this.setState({answer: ans});
       return;
     }
-
-    
+    alert('error');
   }
 
   render() {
     return (
       <div className="App">
         <Input submit={this.submitted}/>
-        <Output answer={this.state.answer} rerun={() => this.submitted(this.value, this.killer, this.thresholdInput)} toX={this.toX}/>
+        <Output 
+        answer={this.state.answer} 
+        answerExample={this.answerExample}
+        rerun={() => this.submitted(this.value, this.killer, this.thresholdInput)} 
+        toX={this.toX}/>
       </div>
     );
   }
