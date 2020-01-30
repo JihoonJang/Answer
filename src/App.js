@@ -69,10 +69,12 @@ class Input extends React.Component {
     for (let i = 1; i <= 20; i++) {
       if (ansDict[value[i]] === undefined) {
         erroridx.push(i);
+        value[i] = '';
       }
     }
     if (erroridx.length > 0) {
       alert(String(erroridx) + '번째 답을 양식에 맞게 입력해주세요 (예시 : 1, ㄱㄴ, x)');
+      this.setState({value: value});
       e.preventDefault();
       return;
     }
@@ -116,7 +118,8 @@ class Input extends React.Component {
               required
               type='text'
               onChange={(e) => this.onValueChanged(e, i)}
-              placeholder='예시 : 1, ㄱㄴ, x' />
+              placeholder='예시 : 1, ㄱㄴ, x' 
+              value={this.state.value[i]}/>
           </Col>
           <Col sm='3'>
             <center>
