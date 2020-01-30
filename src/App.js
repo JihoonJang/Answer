@@ -194,7 +194,11 @@ class Output extends React.Component {
             </OverlayTrigger>
           </Col>
           <Col sm='10'>
-            <p align='left'>{this.props.answerExample[i * 5 + j]}</p>
+            <p align='left'>
+              <font style={{color: this.props.toX.includes(prob) ? 'red' : 'black'}}>
+                {this.props.answerExample[i * 5 + j]}
+              </font>
+            </p>
           </Col>
         </Row>);
         this.problem.push(<>{i * 5 + j}<br/></>);
@@ -222,7 +226,7 @@ class Output extends React.Component {
             <Row>
               <Col sm='3'>
                 <h5>답</h5><p>{this.answer}</p><br/>
-                <h5>답개수</h5><p>{String(this.ansNum)}<br/></p>
+                <h5>답개수</h5><p>{String(this.ansNum)}</p><br/>
                 <h5>복붙용</h5><p>{this.ansbocbut}</p>
                 <Button 
                   size='sm' 
@@ -292,7 +296,7 @@ function getRandomAnswerExample(bogi, answer) {
   for (let i = 1; i < bogi.length; i++) {
     s += ', ' + bogi[i];
   }
-  s = circleNum[answer] + ' ' + s + '\t';
+  s = circleNum[answer] + ' ' + s + (answer === 5 ? '' : '\t');
   let possibleExample = answerSheet.filter(v => v.includes(s));
   if (possibleExample.length === 0) return '';
   return possibleExample[Math.floor(Math.random() * possibleExample.length)];
