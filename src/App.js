@@ -109,7 +109,7 @@ class Input extends React.Component {
       items.push(
         <Form.Group as={Row}>
           <Col sm='3'>
-            <center><Form.Label as={Col}>{i}&nbsp;</Form.Label></center>
+            <center><Form.Label variant='primary' size='sm'>{i}&nbsp;</Form.Label></center>
           </Col>
           <Col sm='6'>
             <Form.Control
@@ -152,7 +152,7 @@ class Input extends React.Component {
               <Form.Control
               type='text'
               onChange={this.onAnsNumChanged}
-              placeholder='예시 : 35435, 25553'/>
+              placeholder='예시 : 35435, 25553 (Optional)'/>
             </center>
           </Col>
         </Form.Group>
