@@ -289,6 +289,32 @@ const answerSheet =
     '① ㄴ\t② ㄷ\t③ ㄱ, ㄴ\t④ ㄱ, ㄷ\t⑤ ㄱ, ㄴ, ㄷ'
   ];
 
+const bogiAnsToAnsSheet = {
+  'ㄱ1': [], 
+  'ㄴ1': [],
+  'ㄴ2': [],
+  'ㄷ2': [],
+  'ㄷ3': [],
+  'ㄱㄴ3': [],
+  'ㄱㄴ4': [],
+  'ㄱㄷ3': [],
+  'ㄱㄷ4': [],
+  'ㄱㄷ5': [],
+  'ㄴㄷ4': [],
+  'ㄴㄷ5': [],
+  'ㄱㄴㄷ5': []
+};
+
+const bogiToAns = {
+  'ㄱ': [],
+  'ㄴ': [],
+  'ㄷ': [],
+  'ㄱㄴ': [],
+  'ㄱㄷ': [],
+  'ㄴㄷ': [],
+  'ㄱㄴㄷ': []
+};
+
 function getRandomAnswerExample(bogi, answer) {
   let s = bogi[0];
   if (s === 'x') return answerSheet[Math.floor(Math.random() * 9)];
