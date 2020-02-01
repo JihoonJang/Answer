@@ -162,6 +162,10 @@ class Output extends React.Component {
   }
 
   onCopy(i) {
+    if (navigator.clipboard === undefined) {
+      alert('클립보드에 접근할 수 없습니다.');
+      return;
+    }
     if (i === null)
       navigator.clipboard.writeText(this.props.answer.reduce((p, c) => {if (p === null) return ''; else return p + String(c) + '\n';}));
     else
