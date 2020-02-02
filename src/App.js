@@ -2,15 +2,20 @@ import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Alert, Button, Form, Col, Row, Modal, Container, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import './App.css';
+import exportExcel from './exportExcel';
 
 class Input extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {value: [], killer: [], ansNum: ''};
+    this.state = {value: [], killer: [], ansNum: '', fileName: ''};
     this.onValueChanged = this.onValueChanged.bind(this);
     this.onKillerChanged = this.onKillerChanged.bind(this);
     this.onSubmitted = this.onSubmitted.bind(this);
     this.onAnsNumChanged = this.onAnsNumChanged.bind(this);
+    this.onFileNameChanged = this.onFileNameChanged.bind(this);
+  }
+  onFileNameChanged(e) {
+    this.setState({fileName: e.target.value});
   }
   onAnsNumChanged(e) {
     this.setState({ansNum: e.target.value});
@@ -51,6 +56,8 @@ class Input extends React.Component {
     let value = [...this.state.value];
 
     for (let i = 1; i <= 20; i++) {
+      
+      value[i] = value[i].split('').sort((a, b) => {if (a === 'ㄱ') return -1; else if (a === 'ㄴ' && b === 'ㄷ') return -1; else return 1;}).join('');
       if (ansDict[value[i]] === undefined) {
         erroridx.push(i);
         value[i] = '';
@@ -63,7 +70,7 @@ class Input extends React.Component {
       return;
     }
 
-    this.props.submit(value, killer, ansNum);
+    this.props.submit(value, killer, ansNum, this.state.fileName);
 
     e.preventDefault();
   }
@@ -115,6 +122,19 @@ class Input extends React.Component {
     }
     return (
       <Form onSubmit={this.onSubmitted}>
+        <Form.Group as={Row}>
+          <Col sm='4'>
+            <center><Alert variant='secondary'>시험지 이름</Alert></center>
+          </Col>
+          <Col sm='8'>
+            <Form.Control
+              required
+              type='text'
+              onChange={this.onFileNameChanged}
+              placeholder='예시 : 블루 3회'
+              value={this.state.fileName}/>
+          </Col>
+        </Form.Group>
         <Form.Group as={Row}>
           <Col sm='3'>
             <center><Alert variant='secondary'>번호</Alert></center>
@@ -191,9 +211,9 @@ class Output extends React.Component {
             <OverlayTrigger
               placement='left'
               delay={{ show: 250, hide: 400}}
-              overlay={props => <Tooltip {...props}>복사하기</Tooltip>}>
+              overlay={props => <Tooltip {...props}>클립보드에 복사하기</Tooltip>}>
               <Button size='sm' 
-              disabled={this.props.answerExample[i * 5 + j].length === 1}
+              //disabled={!answerSheet.includes(this.props.answerExample[i * 5 + j])}
               onClick={(e) => this.onCopy(i * 5 + j)}>{i * 5 + j}</Button>
             </OverlayTrigger>
           </Col>
@@ -255,6 +275,9 @@ class Output extends React.Component {
           <Button variant="secondary" onClick={this.handleClose}>
             Close
           </Button>
+          <Button variant="success" onClick={e => exportExcel(this.props.fileName, this.props.input, this.props.answer, this.props.answerExample)}>
+            Export
+          </Button>
           <Button variant="primary" onClick={this.props.rerun}>
             Rerun
           </Button>
@@ -282,31 +305,31 @@ const ansDict = {
 
 const answerSheet =  
   [ 
-    '① ㄱ\t② ㄴ\t③ ㄷ\t④ ㄱ, ㄴ\t⑤ ㄱ, ㄷ',
-    '① ㄱ\t② ㄴ\t③ ㄷ\t④ ㄱ, ㄴ\t⑤ ㄴ, ㄷ',
-    '① ㄱ\t② ㄴ\t③ ㄷ\t④ ㄱ, ㄷ\t⑤ ㄴ, ㄷ',
-    '① ㄱ\t② ㄴ\t③ ㄱ, ㄴ\t④ ㄱ, ㄷ\t⑤ ㄴ, ㄷ',
-    '① ㄱ\t② ㄷ\t③ ㄱ, ㄴ\t④ ㄱ, ㄷ\t⑤ ㄴ, ㄷ',
-    '① ㄴ\t② ㄷ\t③ ㄱ, ㄴ\t④ ㄱ, ㄷ\t⑤ ㄴ, ㄷ',
-    '① ㄱ\t② ㄴ\t③ ㄱ, ㄷ\t④ ㄴ, ㄷ\t⑤ ㄱ, ㄴ, ㄷ',
-    '① ㄱ\t② ㄷ\t③ ㄱ, ㄴ\t④ ㄴ, ㄷ\t⑤ ㄱ, ㄴ, ㄷ',
-    '① ㄴ\t② ㄷ\t③ ㄱ, ㄴ\t④ ㄱ, ㄷ\t⑤ ㄱ, ㄴ, ㄷ'
+    [null, 'ㄱ', 'ㄴ', 'ㄷ', 'ㄱㄴ', 'ㄱㄷ'],
+    [null, 'ㄱ', 'ㄴ', 'ㄷ', 'ㄱㄴ', 'ㄴㄷ'],
+    [null, 'ㄱ', 'ㄴ', 'ㄷ', 'ㄱㄷ', 'ㄴㄷ'],
+    [null, 'ㄱ', 'ㄴ', 'ㄱㄴ', 'ㄱㄷ', 'ㄴㄷ'],
+    [null, 'ㄱ', 'ㄷ', 'ㄱㄴ', 'ㄱㄷ', 'ㄴㄷ'],
+    [null, 'ㄴ', 'ㄷ', 'ㄱㄴ', 'ㄱㄷ', 'ㄴㄷ'],
+    [null, 'ㄱ', 'ㄴ', 'ㄱㄷ', 'ㄴㄷ', 'ㄱㄴㄷ'],
+    [null, 'ㄱ', 'ㄷ', 'ㄱㄴ', 'ㄴㄷ', 'ㄱㄴㄷ'],
+    [null, 'ㄴ', 'ㄷ', 'ㄱㄴ', 'ㄱㄷ', 'ㄱㄴㄷ']
   ];
 
 const bogiAnsToAnsSheet = {
-  'ㄱ1': [], 
-  'ㄴ1': [],
-  'ㄴ2': [],
-  'ㄷ2': [],
-  'ㄷ3': [],
-  'ㄱㄴ3': [],
-  'ㄱㄴ4': [],
-  'ㄱㄷ3': [],
-  'ㄱㄷ4': [],
-  'ㄱㄷ5': [],
-  'ㄴㄷ4': [],
-  'ㄴㄷ5': [],
-  'ㄱㄴㄷ5': []
+  'ㄱ1':      [17,  4,  3,  4,  8,  0,  6,  9,  0], 
+  'ㄴ1':      [ 0,  0,  0,  0,  0,  1,  0,  0,  1],
+  'ㄴ2':      [ 0, 21,  5,  7,  0,  0,  8,  0,  0],
+  'ㄷ2':      [ 0,  0,  0,  0,  4,  0,  0,  4,  1],
+  'ㄷ3':      [ 0,  3,  1,  0,  0,  0,  0,  0,  0],
+  'ㄱㄴ3':    [ 0,  0,  0,  4,  2,  0,  0, 24,  0],
+  'ㄱㄴ4':    [ 2,  8,  0,  0,  0,  0,  0,  0,  0],
+  'ㄱㄷ3':    [ 0,  0,  0,  0,  0,  0, 19,  0,  0],
+  'ㄱㄷ4':    [ 0,  0,  9,  2,  8,  2,  0,  0,  2],
+  'ㄱㄷ5':    [ 4,  0,  0,  0,  0,  0,  0,  0,  0],
+  'ㄴㄷ4':    [ 0,  0,  0,  0,  0,  0,  9, 10,  0],
+  'ㄴㄷ5':    [ 0, 11,  6,  1,  1,  1,  0,  0,  0],
+  'ㄱㄴㄷ5':  [ 0,  0,  0,  0,  0,  0, 16, 23,  2],
 };
 
 const bogiToAns = {
@@ -320,16 +343,38 @@ const bogiToAns = {
 };
 
 function getRandomAnswerExample(bogi, answer) {
-  let s = bogi[0];
-  if (s === 'x') return answerSheet[Math.floor(Math.random() * 9)];
-  else if (!isNaN(parseInt(s))) return circleNum[answer];
-  for (let i = 1; i < bogi.length; i++) {
-    s += ', ' + bogi[i];
+  let possAccum = [];
+  let possSum;
+  if (bogi === 'x') {
+    let xnPossArr = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    for (let key of Object.keys(bogiAnsToAnsSheet)) {
+      if (key.search(answer) >= 0) {
+        let possArr = bogiAnsToAnsSheet[key];
+        xnPossArr = xnPossArr.map((v, i) => v + possArr[i]);
+      }
+    }
+    for (let i = 0; i < answerSheet.length; i++) {
+      possAccum.push(i === 0 ? xnPossArr[i] : xnPossArr[i] + possAccum[i - 1]);
+    }
+    possSum = xnPossArr.reduce((p, c) => p + c, 0);
   }
-  s = circleNum[answer] + ' ' + s + (answer === 5 ? '' : '\t');
-  let possibleExample = answerSheet.filter(v => v.includes(s));
-  if (possibleExample.length === 0) return '';
-  return possibleExample[Math.floor(Math.random() * possibleExample.length)];
+  else if (bogi + answer in bogiAnsToAnsSheet) {
+    let possArr = bogiAnsToAnsSheet[bogi + answer];
+    for (let i = 0; i < answerSheet.length; i++) {
+      possAccum.push(i === 0 ? possArr[i] : possArr[i] + possAccum[i - 1]);
+    }
+    possSum = possArr.reduce((p, c) => p + c, 0);
+  }
+  else return '답 확정 (' + circleNum[answer] + ')';
+
+  let poss = Math.random() * possSum;
+
+  for (let i = 0; i < answerSheet.length; i++) {
+    if (poss <= possAccum[i]) {
+      return answerSheet[i];
+    }
+  }
+  return 'error';
 };
 
 class App extends React.Component {
@@ -340,10 +385,11 @@ class App extends React.Component {
     this.toX = []
   }
 
-  submitted(value, killer, thresholdInput) {
+  submitted(value, killer, thresholdInput, fileName) {
     this.value = [...value];
     this.killer = [...killer];
     this.thresholdInput = thresholdInput;
+    this.fileName = fileName;
 
     // input을 가능한 답의 집합으로 mapping시킴
     let answerSet = value.map(e => ansDict[e]);
@@ -436,8 +482,23 @@ class App extends React.Component {
       
       if (remainProblem.length === 0) {
         this.answerExample = {};
+        this.modifiedValue= [null];
         for (let p = 1; p <= 20; p++) {
-          this.answerExample[p] = getRandomAnswerExample(value[p], ans[p]);
+          let answerBogi = getRandomAnswerExample(value[p], ans[p]);
+          let s = '';
+          for (let a = 1; a <= 5; a++) {
+            s += circleNum[a] + ' ';
+            for (let bogi of answerBogi[a]) {
+              s += bogi + ', ';
+            }
+            s = s.substr(0, s.length - 2) + '\t';
+          }
+          s = s.substr(0, s.length - 1) + '\n';
+          this.answerExample[p] = s;
+          if (value[p] === 'x') {
+            this.modifiedValue.push(answerBogi[ans[p]]);
+          }
+          else this.modifiedValue.push(value[p]);
         }
         this.setState({answer: ans});
         return true;
@@ -542,9 +603,11 @@ class App extends React.Component {
       <div className="App">
         <Input submit={this.submitted}/>
         <Output 
+        input={this.modifiedValue}
+        fileName={this.fileName}
         answer={this.state.answer} 
         answerExample={this.answerExample}
-        rerun={() => this.submitted(this.value, this.killer, this.thresholdInput)} 
+        rerun={() => this.submitted(this.value, this.killer, this.thresholdInput, this.fileName)} 
         toX={this.toX}/>
       </div>
     );

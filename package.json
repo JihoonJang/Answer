@@ -7,15 +7,16 @@
     "@testing-library/react": "^9.4.0",
     "@testing-library/user-event": "^7.2.1",
     "bootstrap": "^4.4.1",
+    "file-saver": "^2.0.2",
     "mkcert": "^1.2.0",
     "react": "^16.12.0",
     "react-bootstrap": "^1.0.0-beta.16",
     "react-dom": "^16.12.0",
-    "react-scripts": "3.3.0"
+    "react-scripts": "3.3.0",
+    "xlsx": "^0.15.5"
   },
   "scripts": {
-    "start": "HTTPS=true PORT=443 react-scripts start",
-    "prestart": "rm ./node_modules/webpack-dev-server/ssl/server.pem && cp -f ./cert/server.pem ./node_modules/webpack-dev-server/ssl",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
