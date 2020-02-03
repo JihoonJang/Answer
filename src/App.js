@@ -425,10 +425,10 @@ class App extends React.Component {
         this._map = new Map();
       }
       get(arr) {
-        return this._map.get(arr.reduce((p, c) => p + c * (5 ** c), 0));
+        return this._map.get(arr.reduce((p, c) => p + c * (10 ** c), 0));
       }
       set(arr, val) {
-        this._map.set(arr.reduce((p, c) => p + c * (5 ** c), 0), val);
+        this._map.set(arr.reduce((p, c) => p + c * (10 ** c), 0), val);
       }
     };
 
@@ -467,44 +467,44 @@ class App extends React.Component {
         }
         else threshold = defaultThreshold[val.length];
 
-            totalAnsNumDict.set(val, totalAnsNum);
-            thresholdDict.set(val, threshold);
-          });
+        totalAnsNumDict.set(val, totalAnsNum);
+        thresholdDict.set(val, threshold);
+      });
 
-          for (let c of Combinations) {
-            if (totalAnsNumDict.get(c) < thresholdDict.get(c)) return false;
+      for (let c of Combinations) {
+        if (totalAnsNumDict.get(c) < thresholdDict.get(c)) return false;
+      }
+      return true;
+    }
+
+    var recursive_fillAnswer = (ansNumThreshold = null) => {
+      if (!isValid(ansNumThreshold)) return false;
+      
+      if (remainProblem.length === 0) {
+        this.answerExample = {};
+        this.modifiedValue= [null];
+        for (let p = 1; p <= 20; p++) {
+          let answerBogi = getRandomAnswerExample(value[p], ans[p]);
+          if (!['1', '2', '3', '4', '5'].includes(value[p])) {
+            let s = '';
+            for (let a = 1; a <= 5; a++) {
+              s += circleNum[a] + ' ';
+              for (let bogi of answerBogi[a]) {
+                s += bogi + ', ';
+              }
+              s = s.substr(0, s.length - 2) + '\t';
+            }
+            s = s.substr(0, s.length - 1) + '\n';
+            this.answerExample[p] = s;
+            if (value[p] === 'x') {
+              this.modifiedValue.push(answerBogi[ans[p]]);
+            }
+            else this.modifiedValue.push(value[p]);
           }
-          return true;
-        }
-
-        var recursive_fillAnswer = (ansNumThreshold = null) => {
-          if (!isValid(ansNumThreshold)) return false;
-          
-          if (remainProblem.length === 0) {
-            this.answerExample = {};
-            this.modifiedValue= [null];
-            for (let p = 1; p <= 20; p++) {
-              let answerBogi = getRandomAnswerExample(value[p], ans[p]);
-              if (!['1', '2', '3', '4', '5'].includes(value[p])) {
-                let s = '';
-                for (let a = 1; a <= 5; a++) {
-                  s += circleNum[a] + ' ';
-                  for (let bogi of answerBogi[a]) {
-                    s += bogi + ', ';
-                  }
-                  s = s.substr(0, s.length - 2) + '\t';
-                }
-                s = s.substr(0, s.length - 1) + '\n';
-                this.answerExample[p] = s;
-                if (value[p] === 'x') {
-                  this.modifiedValue.push(answerBogi[ans[p]]);
-                }
-                else this.modifiedValue.push(value[p]);
-              }
-              else {
-                this.answerExample[p] = answerBogi;
-                this.modifiedValue.push(value[p]);
-              }
+          else {
+            this.answerExample[p] = answerBogi;
+            this.modifiedValue.push(value[p]);
+          }
         }
         this.setState({answer: ans});
         return true;
@@ -552,9 +552,7 @@ class App extends React.Component {
       if (thresholdInput === null)
         for (let a of killerAns) threshold[a]++;
 
-      if (recursive_fillAnswer(threshold)) {
-        return;
-      }
+      if (recursive_fillAnswer(threshold)) return;
       else {
         var toX = [];
         var toXCandidate = remainProblem.filter(p => answerSet[p].length < 5);
