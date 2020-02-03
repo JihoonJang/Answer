@@ -45,7 +45,7 @@ var excelHandler = {
                 sheet.push(row);
             }
             for (let i = 0; i < 4; i++) {
-                sheet[0][3 * i] = '문제 번호';
+                sheet[0][3 * i] = '문항 번호';
                 sheet[0][3 * i + 1] = '정답';
                 sheet[0][3 * i + 2] = '배점';
             }
@@ -63,7 +63,7 @@ var excelHandler = {
                 sheet[8][i] = ans.reduce((p, c) => i === c ? p + 1 : p, 0);
             }
 
-            sheet[0][13] = '문제 번호';
+            sheet[0][13] = '문항 번호';
             sheet[0][14] = '맞는 보기';
             sheet[0][15] = '답';
             sheet[0][16] = '답 예시';
