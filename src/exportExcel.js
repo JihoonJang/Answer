@@ -54,7 +54,6 @@ var excelHandler = {
                     let p = c * 5 + r + 1;
                     sheet[r + 1][c * 3] = p;
                     sheet[r + 1][c * 3 + 1] = circleNum[ans[p]];
-                    sheet[r + 1][c * 3 + 2] = '2';
                 }
             }
             sheet[7][0] = '답';
