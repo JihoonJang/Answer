@@ -32,7 +32,7 @@ class Input extends React.Component {
       }
     }
     if (erroridx.length > 0) {
-      alert(String(erroridx) + '번째 답을 양식에 맞게 입력해주세요 (예시 : 1, ㄱㄴ, x)');
+      alert(String(erroridx) + '번째 답을 양식에 맞게 입력해주세요 (예시 : 1, ㄱㄴ)');
       this.setState({value: value});
       e.preventDefault();
       return;
