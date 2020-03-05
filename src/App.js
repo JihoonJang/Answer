@@ -74,7 +74,7 @@ class Input extends React.Component {
               required
               type='text'
               onChange={(e) => this.onValueChanged(e, i)}
-              placeholder='예시 : 1, ㄱㄴ, x' 
+              placeholder='예시 : 1, ㄱㄴ' 
               value={this.state.value[i]}/>
           </Col>
           <Col sm='3'>
