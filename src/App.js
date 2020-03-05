@@ -7,49 +7,17 @@ import exportExcel from './exportExcel';
 class Input extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {value: [], killer: [], ansNum: '', fileName: ''};
+    this.state = {value: [], killer: [], fileName: ''};
     this.onValueChanged = this.onValueChanged.bind(this);
     this.onKillerChanged = this.onKillerChanged.bind(this);
     this.onSubmitted = this.onSubmitted.bind(this);
-    this.onAnsNumChanged = this.onAnsNumChanged.bind(this);
     this.onFileNameChanged = this.onFileNameChanged.bind(this);
   }
   onFileNameChanged(e) {
     this.setState({fileName: e.target.value});
   }
-  onAnsNumChanged(e) {
-    this.setState({ansNum: e.target.value});
-  }
   onSubmitted(e) {
-    let ansNum = null;
     let killer = [...this.state.killer];
-    if (this.state.ansNum.length !== 0) {
-      ansNum = [null];
-      for (let a of this.state.ansNum) {
-        a = parseInt(a);
-        if (isNaN(a) || a > 6 || a < 2) {
-          alert('답개수 지정을 양식에 맞게 다시 입력해주세요. (답개수는 각각 2부터 6까지만 가능합니다.)');
-          e.preventDefault();
-          return;
-        }
-        ansNum.push(a);
-      }
-      if (ansNum.length !== 6) {
-        alert('답개수를 ①번부터 ⑤번까지 5개만 입력해주세요.');
-        e.preventDefault();
-        return;
-      }
-      if (ansNum.reduce((p, c, i) => {if (i === 0) return 0; else return p + c}) > 20) {
-        alert('답개수의 합이 20을 넘어가지 않게 입력해주세요.');
-        e.preventDefault();
-        return;
-      }
-      if (this.state.killer.length > 0) {
-        alert('답개수 지정과 찍맞방지를 동시에 사용할 수 없습니다. 찍맞방지를 해제합니다.');
-        killer = [];
-        this.setState({killer: []});
-      }
-    }
     
     // 입력 오류 있는지 확인
     let erroridx = []
@@ -70,7 +38,7 @@ class Input extends React.Component {
       return;
     }
 
-    this.props.submit(value, killer, ansNum, this.state.fileName);
+    this.props.submit(value, killer, this.state.fileName.length > 0 ? this.state.fileName : '답안');
 
     e.preventDefault();
   }
@@ -128,7 +96,6 @@ class Input extends React.Component {
           </Col>
           <Col sm='8'>
             <Form.Control
-              required
               type='text'
               onChange={this.onFileNameChanged}
               placeholder='예시 : 블루 3회'
@@ -147,19 +114,7 @@ class Input extends React.Component {
           </Col>
         </Form.Group>
         {items}
-        <Form.Group as={Row}>
-          <Col sm='3'>
-            <center>답개수 지정</center>
-          </Col>
-          <Col sm='6'>
-            <center>
-              <Form.Control
-              type='text'
-              onChange={this.onAnsNumChanged}
-              placeholder='예시 : 35435, 25553 (Optional)'/>
-            </center>
-          </Col>
-        </Form.Group>
+        
         <center>
           <Button type='submit'>Submit</Button>
         </center>
@@ -181,15 +136,25 @@ class Output extends React.Component {
     this.handleClose = this.handleClose.bind(this);
   }
 
-  onCopy(i) {
+  onCopyForMacro() {
     if (navigator.clipboard === undefined) {
       alert('클립보드에 접근할 수 없습니다.');
       return;
     }
-    if (i === null)
-      navigator.clipboard.writeText(this.props.answer.reduce((p, c) => {if (p === null) return ''; else return p + String(c) + '\n';}));
-    else
-      navigator.clipboard.writeText(this.props.answerExample[i]);
+    let ret = ''
+    for (let p = 1; p <= 20; p++) {
+      if (this.props.answerExample[p].search("답") === -1)
+        ret += '@' + p + '.' + this.props.answerExample[p] + "." + circleNum[this.props.answer[p]];
+    }
+    navigator.clipboard.writeText(ret.substr(1));
+  }
+
+  onCopy(p) {
+    if (navigator.clipboard === undefined) {
+      alert('클립보드에 접근할 수 없습니다.');
+      return;
+    }
+    navigator.clipboard.writeText(this.props.answerExample[p]);
   }
 
   handleShow() {
@@ -200,11 +165,11 @@ class Output extends React.Component {
     this.problem = []
     for (let i = 0; i < 4; i++) {
       for (let j = 1; j <= 5; j++) {
-        var prob = i * 5 + j;
-        var ans = this.props.answer[i * 5 + j];
-        this.answer.push(<font style={{color: this.props.toX.includes(prob) ? 'red' : 'black'}}>{circleNum[ans]}</font>);
-        this.ansNum[this.props.answer[i * 5 + j] - 1]++;
-        this.ansbocbut.push(<>{this.props.answer[i * 5 + j]}<br/></>)
+        let prob = i * 5 + j;
+        var ans = this.props.answer[prob];
+        this.answer.push(<font>{circleNum[ans]}</font>);
+        this.ansNum[this.props.answer[prob] - 1]++;
+        this.ansbocbut.push(<>{this.props.answer[prob]}<br/></>)
         this.answerExample.push(
         <Row>
           <Col sm='2'>
@@ -213,19 +178,19 @@ class Output extends React.Component {
               delay={{ show: 250, hide: 400}}
               overlay={props => <Tooltip {...props}>클립보드에 복사하기</Tooltip>}>
               <Button size='sm' 
-              disabled={this.props.answerExample[i * 5 + j].search('답') === 0}
-              onClick={(e) => this.onCopy(i * 5 + j)}>{i * 5 + j}</Button>
+                disabled={this.props.answerExample[prob].search('답') === 0}
+                onClick={(e) => this.onCopy(prob)}>{prob}</Button>
             </OverlayTrigger>
           </Col>
           <Col sm='10'>
             <p align='left'>
-              <font style={{color: this.props.toX.includes(prob) ? 'red' : 'black'}}>
-                {this.props.answerExample[i * 5 + j]}
+              <font>
+                {this.props.answerExample[prob]}
               </font>
             </p>
           </Col>
         </Row>);
-        this.problem.push(<>{i * 5 + j}<br/></>);
+        this.problem.push(<>{prob}<br/></>);
       }
       this.answer.push(<br/>)
     }
@@ -242,30 +207,40 @@ class Output extends React.Component {
       this.setState({prevAns: this.props.answer});
       this.handleShow();
     }
+    let killerAns = [1, 2, 3, 4, 5].filter(v => this.props.lb[v] > 3);
+    let killerAnsStr = "";
+    if (killerAns.length > 0) {
+      killerAnsStr = circleNum[killerAns[0]];
+      if (killerAns.length > 1) {
+        killerAnsStr += ", " + circleNum[killerAns[1]];
+      }
+    }
     return (
       <Modal show={this.state.show} onHide={this.handleClose} dialogClassName='modal-90w'>
         <Modal.Body>
           <Container>
           <div className='Modal'>
             <Row>
+              {this.props.reqMov > 0 ? 
+              <Col>
+                <br/>
+                <Alert variant='danger'>답개수 법칙을 만족하도록 답을 지정할 수 없습니다.<br/>최소 {this.props.reqMov}문항의 답을 수정해야 합니다.
+                  {killerAns.length > 0 ? 
+                    <><br/><br/>※ 찍맞방지를 위해서 {killerAnsStr}의 답개수가 {killerAns.length > 1 ? "각각 " : ""}{this.props.lb[killerAns[0]]}개 이상이도록 수정해야 합니다.</>
+                    : null
+                  }
+                </Alert>
+              </Col> : null}
+            </Row>
+            <Row>
               <Col sm='3'>
                 <h5>답</h5><p>{this.answer}</p><br/>
                 <h5>답개수</h5><p>{String(this.ansNum)}</p><br/>
-                <h5>복붙용</h5><p>{this.ansbocbut}</p>
-                <Button 
-                  size='sm' 
-                  onClick={(e) => this.onCopy(null)}>복사하기</Button>
               </Col>
               <Col sm='9'>
                 <h5>답 예시</h5>
                 {this.answerExample}
               </Col>
-              
-              {this.props.toX.length > 0 ? 
-              <Col>
-                <br/>
-                <Alert variant='danger'>{String(this.props.toX)}번의 답을 위와 같이 수정해야 합니다.</Alert>
-              </Col> : null}
             </Row>
           </div>
           </Container>
@@ -273,13 +248,13 @@ class Output extends React.Component {
       
         <Modal.Footer>
           <Button variant="secondary" onClick={this.handleClose}>
-            Close
+            닫기
           </Button>
           <Button variant="success" onClick={e => exportExcel(this.props.fileName, this.props.input, this.props.answer, this.props.answerExample)}>
-            Export
+            내보내기
           </Button>
-          <Button variant="primary" onClick={this.props.rerun}>
-            Rerun
+          <Button variant="primary" onClick={e => this.onCopyForMacro()}>
+            답 전체 복사 (매크로용)
           </Button>
         </Modal.Footer>
       </Modal>
@@ -382,13 +357,13 @@ class App extends React.Component {
     super(props);
     this.state = {answer: ''};
     this.submitted = this.submitted.bind(this);
-    this.toX = []
+    this.lb = [0, 3, 3, 3, 3, 3];
+    this.reqMov = 0;
   }
 
-  submitted(value, killer, thresholdInput, fileName) {
+  submitted(value, killer, fileName) {
     this.value = [...value];
     this.killer = [...killer];
-    this.thresholdInput = thresholdInput;
     this.fileName = fileName;
 
     // input을 가능한 답의 집합으로 mapping시킴
@@ -421,8 +396,9 @@ class App extends React.Component {
     ];
 
     class ArrayMap {
-      constructor() {
-        this._map = new Map();
+      constructor(arraymap = null) {
+        if (arraymap != null) this._map = new Map(arraymap._map);
+        else this._map = new Map()
       }
       get(arr) {
         return this._map.get(arr.reduce((p, c) => p + c * (10 ** c), 0));
@@ -433,52 +409,45 @@ class App extends React.Component {
     };
 
     var totalAnsNumDict = new ArrayMap();
-    var thresholdDict = new ArrayMap();
+    var upperBoundDict = new ArrayMap();
+    var lowerBoundDict = new ArrayMap();
+    
+    var isValid = (ansNumLowerBound = null, ansNumUpperBound = null) => {
+      if (ansNumLowerBound === null) ansNumLowerBound = [0, 3, 3, 3, 3, 3];
+      if (ansNumUpperBound === null) ansNumUpperBound = [0, 5, 5, 5, 5, 5];
 
-    var isValid = (ansNumThreshold, toX = []) => {
-      var problemSetOfAnswer = [0, new Set(), new Set(), new Set(), new Set(), new Set()];
+      let problemSetOfAnswer = [0, new Set(), new Set(), new Set(), new Set(), new Set()];
 
       for (let p of remainProblem) {
-        if (toX.includes(p)) for (let a of [1, 2, 3, 4, 5]) {
-          problemSetOfAnswer[a].add(p);
-        }
-        else for (let a of answerSet[p]) {
+        for (let a of answerSet[p]) {
           problemSetOfAnswer[a].add(p);
         }
       }
 
-      Combinations.forEach(val => {
-        const defaultThreshold = [0, 3, 6, 10, 15];
-        var unionSet = problemSetOfAnswer[val[0]];
-        for (let i = 1; i < val.length; i++) {
-          unionSet = new Set([...unionSet, ...problemSetOfAnswer[val[i]]]);
+      Combinations.forEach(comb => {
+        var unionSet = problemSetOfAnswer[comb[0]];
+        for (let i = 1; i < comb.length; i++) {
+          unionSet = new Set([...unionSet, ...problemSetOfAnswer[comb[i]]]);
         }
         var totalAnsNum = unionSet.size;
-        for (let a of val) {
+        for (let a of comb) {
           totalAnsNum += ansNum[a];
         };
 
-        let threshold = 0;
-        if (ansNumThreshold != null) {
-          for (let a of val) threshold += ansNumThreshold[a];
-          if (ansNumThreshold.reduce((p, c, i) => {if (i === 0) return 0; else return p + c;}) < 20 
-            && threshold < defaultThreshold[val.length])
-            threshold = defaultThreshold[val.length];
-        }
-        else threshold = defaultThreshold[val.length];
-
-        totalAnsNumDict.set(val, totalAnsNum);
-        thresholdDict.set(val, threshold);
+        totalAnsNumDict.set(comb, totalAnsNum);
+        lowerBoundDict.set(comb, comb.reduce((p, c) => p + ansNumLowerBound[c], 0));
+        upperBoundDict.set(comb, 20 - [1, 2, 3, 4, 5].filter(v => !comb.includes(v)).reduce((p, c) => p + ansNumUpperBound[c], 0));
       });
 
       for (let c of Combinations) {
-        if (totalAnsNumDict.get(c) < thresholdDict.get(c)) return false;
+        if (totalAnsNumDict.get(c) < lowerBoundDict.get(c) || 
+            totalAnsNumDict.get(c) < upperBoundDict.get(c)) return false;
       }
       return true;
     }
 
-    var recursive_fillAnswer = (ansNumThreshold = null) => {
-      if (!isValid(ansNumThreshold)) return false;
+    var recursive_fillAnswer = (ansNumLowerBound = null, ansNumUpperBound = null) => {
+      if (!isValid(ansNumLowerBound, ansNumUpperBound)) return false;
       
       if (remainProblem.length === 0) {
         this.answerExample = {};
@@ -494,8 +463,7 @@ class App extends React.Component {
               }
               s = s.substr(0, s.length - 2) + '\t';
             }
-            s = s.substr(0, s.length - 1) + '\n';
-            this.answerExample[p] = s;
+            this.answerExample[p] = s.substr(0, s.length - 1);
             if (value[p] === 'x') {
               this.modifiedValue.push(answerBogi[ans[p]]);
             }
@@ -515,7 +483,7 @@ class App extends React.Component {
       for (let a of answerSet[p]) {
         ansNum[a]++;
         ans[p] = a;
-        if (recursive_fillAnswer(ansNumThreshold)) return true;
+        if (recursive_fillAnswer(ansNumLowerBound, ansNumUpperBound)) return true;
         ans[p] = 0;
         ansNum[a]--;
       }
@@ -540,63 +508,110 @@ class App extends React.Component {
         break;
       default: break;
     }
-    killerAnsArr.sort(() => Math.random() - Math.random());
+    killerAnsArr.sort(() => Math.random() - Math.random());  
+    let minRequiredMoving = 20;
+    let minKillerAns;
 
-    var toXDict = new Map();
+    
+    var getMinMovingComb = (lb, ub) => {
+      isValid(lb, ub);
+      let requiredMoving = 0, minComb = null;
+      for (let comb of Combinations) {
+        let maxBound = upperBoundDict.get(comb) > lowerBoundDict.get(comb) ? upperBoundDict.get(comb) : lowerBoundDict.get(comb);
+        if (requiredMoving < maxBound - totalAnsNumDict.get(comb)) {
+          requiredMoving = maxBound - totalAnsNumDict.get(comb);
+          minComb = comb;
+        }
+      }          
+      return [requiredMoving, minComb];
+    }  
+
+
     for (let killerAns of killerAnsArr) {
+      let lowerBound = [0, 3, 3, 3, 3, 3];
+      let upperBound = [0, 5, 5, 5, 5, 5];
       for (let i = 0; i < killer.length; i++) {
         ans[killer[i]] = killerAns[i];
         ansNum[killerAns[i]]++;
+        lowerBound[killerAns[i]]++;
       }
-      let threshold = thresholdInput === null ? [null, 3, 3, 3, 3, 3] : thresholdInput;
-      if (thresholdInput === null)
-        for (let a of killerAns) threshold[a]++;
+      if (recursive_fillAnswer(lowerBound, upperBound)) return;
+      else {      
+        let requiredMoving, minComb;
 
-      if (recursive_fillAnswer(threshold)) return;
-      else {
-        var toX = [];
-        var toXCandidate = remainProblem.filter(p => answerSet[p].length < 5);
-        do {
-          toXCandidate.sort((a, b) => {
-            a = totalAnsNumDict.get(answerSet[a]) - thresholdDict.get(answerSet[a]);
-            b = totalAnsNumDict.get(answerSet[b]) - thresholdDict.get(answerSet[b]);
-            if (a === b) return Math.random() - Math.random();
-            else return a - b;
-          });
-          toX.push(toXCandidate.pop());
-        } while (!isValid(threshold, toX));
-        toXDict.set(killerAns, toX);
+        [requiredMoving, minComb] = getMinMovingComb(lowerBound, upperBound);
+
+        if (minRequiredMoving > requiredMoving) {
+          minRequiredMoving = requiredMoving;
+          
+          minKillerAns = killerAns;
+        }
       }
+
       for (let i = 0; i < killer.length; i++) {
         ans[killer[i]] = 0;
         ansNum[killerAns[i]]--;
       }
     }
+    // bound 수정
 
-    var minKey = toXDict.keys().next().value;
-
-    for (let killerAns of toXDict.keys()) {
-      if (toXDict.get(minKey).length > toXDict.get(killerAns).length)
-        minKey = killerAns;
-    }
-
-    this.toX = toXDict.get(minKey);
-    this.toX.sort((a, b) => a - b);
-    for (let p of this.toX) {
-      answerSet[p] = [1, 2, 3, 4, 5];
-      value[p] = 'x';
-    }
-
-    let threshold = thresholdInput === null ? [null, 3, 3, 3, 3, 3] : thresholdInput;
-    if (thresholdInput === null)
-      for (let a of minKey) threshold[a]++;
+    let lb = [0, 3, 3, 3, 3, 3], ub = [0, 5, 5, 5, 5, 5];
 
     for (let i = 0; i < killer.length; i++) {
-      ans[killer[i]] = minKey[i];
-      ansNum[minKey[i]]++;
+      ans[killer[i]] = minKillerAns[i];
+      ansNum[minKillerAns[i]]++;
+      lb[minKillerAns[i]]++;
+    }
+
+    let cur_reqMov, new_reqMov, comb;
+
+    [cur_reqMov, comb] = getMinMovingComb(lb, ub);
+
+    // Output 전달용
+    this.reqMov = cur_reqMov;
+    this.lb = [...lb];
+
+    outloop : while (cur_reqMov > 0) {
+      let comb_excl = [1, 2, 3, 4, 5].filter(v => !comb.includes(v));
+      comb.sort(() => Math.random() - Math.random());
+      comb_excl.sort(() => Math.random() - Math.random());
+
+      var lack = [...comb], excessive = [...comb_excl];
+      // lack의 lb는 줄이고, excessive의 ub는 늘려야 함
+      for (let lack_elem of lack) {
+        lb[lack_elem]--;
+        [new_reqMov, comb] = getMinMovingComb(lb, ub);
+        if (new_reqMov < cur_reqMov) {
+          cur_reqMov = new_reqMov;
+          continue outloop;
+        }
+        lb[lack_elem]++;
+      }
+      for (let excessive_elem of excessive) {
+        ub[excessive_elem]++;
+        [new_reqMov, comb] = getMinMovingComb(lb, ub);
+        if (new_reqMov < cur_reqMov) {
+          cur_reqMov = new_reqMov;
+          continue outloop;
+        }
+        ub[excessive_elem]--;
+      }
+      for (let lack_elem of lack) {
+        lb[lack_elem]--;
+        for (let excessive_elem of excessive) {
+          ub[excessive_elem]++;
+          [new_reqMov, comb] = getMinMovingComb(lb, ub);
+          if (new_reqMov < cur_reqMov) {
+            cur_reqMov = new_reqMov;
+            continue outloop;
+          }
+          ub[excessive_elem]--;
+        }
+        lb[lack_elem]++;
+      }
     }
     
-    if (recursive_fillAnswer(threshold)) {
+    if (recursive_fillAnswer(lb, ub)) {
       return;
     }
     alert('error');
@@ -607,12 +622,14 @@ class App extends React.Component {
       <div className="App">
         <Input submit={this.submitted}/>
         <Output 
-        input={this.modifiedValue}
-        fileName={this.fileName}
-        answer={this.state.answer} 
-        answerExample={this.answerExample}
-        rerun={() => this.submitted(this.value, this.killer, this.thresholdInput, this.fileName)} 
-        toX={this.toX}/>
+          input={this.modifiedValue}
+          fileName={this.fileName}
+          answer={this.state.answer} 
+          answerExample={this.answerExample}
+          rerun={() => this.submitted(this.value, this.killer, this.lowerBoundInput, this.fileName)}
+          reqMov={this.reqMov}
+          lb={this.lb} 
+        />
       </div>
     );
   }
